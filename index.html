@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DTC2024 Next.js 강의 2</title>
+  <meta name="description" content="2024 DTC 신입 대상 Next.js 강의 슬라이드 (2강 &mdash; 서버 컴포넌트)">
+  <link rel="icon" type="image/svg+xml" href="/nextjs-logo.svg">
+  <script type="module" src="/main.js"></script>
+</head>
+
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <section data-transition="zoom">
+      <h1>Next.js</h1>
+      <p class="subtitle">2강 &mdash; 서버 컴포넌트</p>
+      <p class="byline">2024 DTC</p>
+    </section>
+
+    <section data-transition="convex">
+
+      <section>
+        <h3 class="slide-title">슬라이드 보는 법</h3>
+        <table class="keys">
+          <tr><td>&rarr; / Space</td><td>다음으로</td></tr>
+          <tr><td>&larr;</td><td>이전으로</td></tr>
+          <tr><td>&darr; / &uarr;</td><td>같은 주제 안에서 단계 이동</td></tr>
+          <tr><td>O</td><td>전체 슬라이드 한눈에 보기</td></tr>
+          <tr><td>F</td><td>전체화면</td></tr>
+        </table>
+        <p class="hint">아래쪽 화살표가 보이면 그 주제는 단계별로 이어집니다</p>
+      </section>
+
+      <section>
+        <h3 class="slide-title">1강 복습</h3>
+        <table class="summary">
+          <tr><td>폴더</td><td>= 주소</td></tr>
+          <tr><td>page.js</td><td>화면</td></tr>
+          <tr><td>layout.js</td><td>공통 틀</td></tr>
+        </table>
+        <p class="hint">오늘은 그 코드가 <strong>어디서</strong> 도는지 배웁니다</p>
+      </section>
+
+      <section>
+        <h3 class="slide-title">오늘 끝나면 할 수 있는 것</h3>
+        <ul class="goals">
+          <li>코드가 서버에서 도는지 브라우저에서 도는지 구분한다</li>
+          <li>언제 <code class="inline">'use client'</code> 를 붙일지 안다</li>
+          <li>서버와 클라이언트를 섞어 쓴다</li>
+        </ul>
+        <aside class="notes">오늘이 Next.js에서 가장 어려운 회차다. 개념 하나에 회차 하나를 통째로 쓴다.</aside>
+      </section>
+
+    </section>
+
+    <section data-transition="convex">
+
+      <section>
+        <h3 class="slide-title">오늘 배울 것</h3>
+        <ul class="toc">
+          <li>7. 렌더링이 어디서 일어나는가</li>
+          <li>8. 서버 컴포넌트</li>
+          <li>9. 'use client'</li>
+          <li>10. 경계 다루기</li>
+          <li>11. 무엇을 어디에</li>
+        </ul>
+      </section>
+
+    </section>
+
+    <section data-transition="convex">
+
+      <section>
+        <h2>7. 렌더링이 어디서 일어나는가</h2><p class="lead">React 앱이 화면에 뜨기까지</p>
+      </section>
+
+      <section>
+        <h3 class="slide-title">7. 렌더링이 어디서 <span class="tag warn">React</span></h3>
+        <div class="split">
+          <pre>
+            <code class="language-html" data-trim>
+              &lt;div id="root"&gt;&lt;/div&gt;
+              &lt;script src="/bundle.js"&gt;&lt;/script&gt;
+            </code>
+          </pre>
+          <div class="demo browser" data-label="React 첫 응답">
+            <p class="note">(흰 화면)</p>
+          </div>
+        </div>
+        <p class="ask">검색엔진은 이 페이지에서 뭘 볼까요?</p>
+        <aside class="notes">서버가 보낸 HTML에는 아무 내용이 없다. JS가 다 받아지고 실행돼야 화면이 생긴다.</aside>
+      </section>
+
+      <section>
+        <h3 class="slide-title">7. 렌더링이 어디서 <span class="tag">두 방식</span></h3>
+        <div class="compare">
+          <div><span class="tag-lang">CSR</span><p>브라우저가 그린다</p><em>첫 화면이 늦다</em></div>
+          <div><span class="tag-lang">SSR</span><p>서버가 그려서 보낸다</p><em>바로 보인다</em></div>
+        </div>
+      </section>
+
+      <section>
+        <h3 class="slide-title">7. 렌더링이 어디서 <span class="tag">Next</span></h3>
+        <div class="split">
+          <pre>
+            <code class="language-html" data-trim>
+              &lt;h1&gt;안녕하세요&lt;/h1&gt;
+              &lt;p&gt;이미 내용이 들어 있다&lt;/p&gt;
+            </code>
+          </pre>
+          <div class="demo browser" data-label="Next 첫 응답">
+            <h1>안녕하세요</h1><p>이미 내용이 들어 있다</p>
+          </div>
+        </div>
+        <aside class="notes">서버가 HTML을 완성해서 보낸다. 검색엔진도 사람도 바로 내용을 본다.</aside>
+      </section>
+
+    </section>
+
+    <section data-transition="convex">
+
+      <section>
+        <h2>8. 서버 컴포넌트</h2><p class="lead">Next의 컴포넌트는 기본이 서버</p>
+      </section>
+
+      <section>
+        <h3 class="slide-title">8. 서버 컴포넌트</h3>
+        <div class="split">
+          <pre>
+            <span class="filename">app/page.js</span>
+            <code class="language-javascript" data-trim>
+              export default function Page() {
+                console.log("어디에 찍힐까?");
+                return &lt;h1&gt;안녕&lt;/h1&gt;;
+              }
+            </code>
+          </pre>
+          <div class="demo console" data-label="터미널 (브라우저 아님)">
+            <div class="ln">어디에 찍힐까?</div>
+          </div>
+        </div>
+        <p class="ask">이 console.log는 어디에 찍힐까요?</p>
+        <aside class="notes">브라우저 콘솔이 아니라 터미널에 찍힌다. 이걸 직접 보여주면 개념이 한 번에 들어온다.</aside>
+      </section>
+
+      <section>
+        <h3 class="slide-title">8. 서버 컴포넌트</h3>
+        <ul class="summary-card">
+          <li>아무 표시가 없으면 <strong>서버 컴포넌트</strong></li>
+          <li>서버에서 실행되고 결과 HTML만 브라우저로 간다</li>
+          <li>컴포넌트 코드 자체는 브라우저로 안 간다</li>
+        </ul>
+        <aside class="notes">번들 크기가 줄어드는 이유이기도 하다.</aside>
+      </section>
+
+      <section>
+        <h3 class="slide-title">8. 서버 컴포넌트 <span class="tag">async</span></h3>
+        <div class="split">
+          <pre>
+            <code class="language-javascript" data-trim>
+              export default async function Page() {
+                const res = await fetch(
+                  'https://api.example.com/posts'
+                );
+                const posts = await res.json();
+
+                return &lt;PostList posts={posts} /&gt;;
+              }
+            </code>
+          </pre>
+          <div class="demo browser" data-label="브라우저 화면">
+            <ul><li>첫 번째 글</li><li>두 번째 글</li></ul>
+          </div>
+        </div>
+        <aside class="notes">컴포넌트에 async를 붙일 수 있다. useEffect도 useState도 필요 없다. 3강에서 자세히.</aside>
+      </section>
+
+      <section>
+        <h3 class="slide-title">8. 서버 컴포넌트 <span class="tag warn">할 수 없는 일</span></h3>
+        <div class="split">
+          <pre>
+            <code class="language-javascript" data-trim>
+              export default function Page() {
+                const [count, setCount] = useState(0);
+                return &lt;button onClick={...}&gt;{count}&lt;/button&gt;;
+              }
+            </code>
+          </pre>
+          <div class="demo console" data-label="터미널">
+            <div class="ln err">useState only works in</div>
+            <div class="ln err">Client Components</div>
+          </div>
+        </div>
+        <p class="ask">서버 컴포넌트에서 useState를 쓰면?</p>
+        <aside class="notes">서버에는 클릭도 없고 상태도 없다. 그래서 훅과 이벤트를 못 쓴다.</aside>
+      </section>
+
+    </section>
+
+    <section data-transition="convex">
+
+      <section>
+        <h2>9. 'use client'</h2><p class="lead">브라우저에서 돌게 하려면</p>
+      </section>
+
+      <section>
+        <h3 class="slide-title">9. 'use client'</h3>
+        <div class="split">
+          <pre>
+            <span class="filename">app/counter.js</span>
+            <code class="language-javascript" data-trim>
+              'use client';
+
+              import { useState } from 'react';
+
+              export default function Counter() {
+                const [count, setCount] = useState(0);
+                return &lt;button onClick={() =&gt; setCount(count + 1)}&gt;
+                  {count}
+                &lt;/button&gt;;
+              }
+            </code>
+          </pre>
+          <div class="demo browser" data-label="브라우저 화면">
+            <button>3</button>
+          </div>
+        </div>
+        <aside class="notes">파일 맨 위에 한 줄. 그 아래 전부가 클라이언트 컴포넌트가 된다.</aside>
+      </section>
+
+      <section>
+        <h3 class="slide-title">9. 'use client' <span class="tag">언제 붙이나</span></h3>
+        <ul class="summary-card">
+          <li><code class="inline">useState</code>, <code class="inline">useEffect</code> 같은 훅</li>
+          <li><code class="inline">onClick</code> 같은 이벤트</li>
+          <li><code class="inline">window</code>, <code class="inline">localStorage</code></li>
+        </ul>
+        <p class="hint">이 중 하나라도 필요하면 <code class="inline">'use client'</code></p>
+        <aside class="notes">반대로 말하면, 이게 없으면 붙이지 않는다. 기본은 서버다.</aside>
+      </section>
+
+      <section>
+        <h3 class="slide-title">9. 'use client' <span class="tag warn">남용</span></h3>
+        <div class="split">
+          <pre>
+            <code class="language-javascript" data-trim>
+              'use client';   // 페이지 전체에 붙임
+
+              export default function Page() {
+                return (
+                  &lt;&gt;
+                    &lt;BigArticle /&gt;   {/* 안 움직이는 글 */}
+                    &lt;Counter /&gt;      {/* 버튼 하나 */}
+                  &lt;/&gt;
+                );
+              }
+            </code>
+          </pre>
+          <div class="demo console" data-label="터미널">
+            <div class="ln err">글까지 전부 브라우저로 간다</div>
+            <div class="ln err">번들이 커진다</div>
+          </div>
+        </div>
+        <p class="ask">버튼 하나 때문에 페이지 전체를 클라이언트로 만들면?</p>
+        <aside class="notes">가장 흔한 실수. 필요한 컴포넌트에만 좁게 붙인다.</aside>
+      </section>
+
+    </section>
+
+    <section data-transition="convex">
+
+      <section>
+        <h2>10. 경계 다루기</h2><p class="lead">서버와 클라이언트를 섞어 쓰려면</p>
+      </section>
+
+      <section>
+        <h3 class="slide-title">10. 경계 다루기 <span class="tag">역할 나누기</span></h3>
+        <div class="boundary">
+          <div class="server">
+            <h4>서버 컴포넌트</h4>
+            <ul>
+            <li>데이터 가져오기</li>
+            <li>비밀 키 사용</li>
+            <li>큰 라이브러리</li>
+            <li>DB 접근</li>
+            </ul>
+          </div>
+          <div class="client">
+            <h4>클라이언트 컴포넌트</h4>
+            <ul>
+            <li>useState / useEffect</li>
+            <li>onClick 등 이벤트</li>
+            <li>window, localStorage</li>
+            <li>애니메이션</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3 class="slide-title">10. 경계 다루기 <span class="tag">props로 전달</span></h3>
+        <div class="split">
+          <pre>
+            <code class="language-javascript" data-trim>
+              // 서버 컴포넌트
+              export default async function Page() {
+                const posts = await getPosts();
+                return &lt;LikeButton posts={posts} /&gt;;
+              }
+            </code>
+          </pre>
+          <div class="demo console" data-label="터미널">
+            <div class="ln">서버 → 클라이언트로</div>
+            <div class="ln">데이터를 내려보낼 수 있다</div>
+          </div>
+        </div>
+        <aside class="notes">서버 컴포넌트가 클라이언트 컴포넌트를 부르는 것은 된다. 데이터도 props로 넘어간다.</aside>
+      </section>
+
+      <section>
+        <h3 class="slide-title">10. 경계 다루기 <span class="tag warn">함수는 안 됨</span></h3>
+        <div class="split">
+          <pre>
+            <code class="language-javascript" data-trim>
+              &lt;LikeButton onLike={() =&gt; save()} /&gt;
+            </code>
+          </pre>
+          <div class="demo console" data-label="터미널">
+            <div class="ln err">Functions cannot be passed</div>
+            <div class="ln err">to Client Components</div>
+          </div>
+        </div>
+        <p class="ask">서버에서 클라이언트로 함수를 넘기면?</p>
+        <aside class="notes">경계를 넘는 값은 JSON으로 바뀔 수 있어야 한다. 함수는 안 된다. 서버 액션은 예외인데 4강에서 다룬다.</aside>
+      </section>
+
+      <section>
+        <h3 class="slide-title">10. 경계 다루기 <span class="tag">children 패턴</span></h3>
+        <div class="split">
+          <pre>
+            <code class="language-javascript" data-trim>
+              // 클라이언트 컴포넌트 안에서
+              import ServerThing from './ServerThing';   // 안 됨
+
+              // 대신 children으로 받는다
+              &lt;ClientWrapper&gt;
+                &lt;ServerThing /&gt;
+              &lt;/ClientWrapper&gt;
+            </code>
+          </pre>
+          <div class="demo console" data-label="터미널">
+            <div class="ln">children으로 넘기면</div>
+            <div class="ln">서버 컴포넌트가 유지된다</div>
+          </div>
+        </div>
+        <aside class="notes">이 패턴을 알면 use client 범위를 크게 줄일 수 있다. 어려우면 넘어가도 된다.</aside>
+      </section>
+
+    </section>
+
+    <section data-transition="convex">
+
+      <section>
+        <h2>11. 무엇을 어디에</h2><p class="lead">판단하는 기준</p>
+      </section>
+
+      <section>
+        <h3 class="slide-title">11. 무엇을 어디에</h3>
+        <ul class="summary-card">
+          <li>일단 <strong>전부 서버 컴포넌트</strong>로 만든다</li>
+          <li>훅이나 이벤트가 필요해지면 그때 쪼갠다</li>
+          <li><code class="inline">'use client'</code> 는 <strong>잎사귀</strong>에 붙인다</li>
+        </ul>
+        <p class="hint">뿌리에 붙이면 그 아래가 전부 클라이언트가 된다</p>
+        <aside class="notes">"잎사귀에 붙인다"만 기억해도 절반은 맞는다.</aside>
+      </section>
+
+      <section>
+        <h3 class="slide-title">11. 무엇을 어디에 <span class="tag">React와 비교</span></h3>
+        <div class="compare">
+          <div><span class="tag-lang">React</span><p>전부 브라우저</p><em>고민할 게 없었다</em></div>
+          <div><span class="tag-lang">Next.js</span><p>기본은 서버</p><em>필요할 때만 클라이언트</em></div>
+        </div>
+      </section>
+
+    </section>
+
+    <section data-transition="convex">
+
+      <section>
+        <h2>정리</h2><p class="lead">오늘 배운 것</p>
+      </section>
+
+      <section>
+        <h3 class="slide-title">한눈에</h3>
+        <table class="summary">
+          <tr><td>기본값</td><td>서버 컴포넌트</td></tr>
+          <tr><td>서버에서</td><td>데이터, 비밀 키, 큰 라이브러리</td></tr>
+          <tr><td>'use client'</td><td>훅 · 이벤트 · window가 필요할 때</td></tr>
+          <tr><td>경계</td><td>props는 되고 함수는 안 된다</td></tr>
+          <tr><td>원칙</td><td>잎사귀에만 붙인다</td></tr>
+        </table>
+      </section>
+
+    </section>
+
+    <section data-transition="convex">
+
+      <section>
+        <h2>실습</h2><p class="lead">직접 해봅시다</p>
+      </section>
+
+      <section>
+        <h3 class="slide-title">실습 과제</h3>
+        <ol class="toc">
+          <li>page.js에 <code class="inline">console.log</code> 를 넣고 어디 찍히는지 확인</li>
+          <li>버튼 컴포넌트만 <code class="inline">'use client'</code> 로 분리하기</li>
+          <li>서버에서 받은 데이터를 그 버튼에 props로 넘기기</li>
+        </ol>
+        <aside class="notes">1번을 꼭 직접 해보게 할 것. 터미널에 찍히는 걸 눈으로 봐야 개념이 잡힌다.</aside>
+      </section>
+
+      <section>
+        <h3 class="slide-title">더 볼 것</h3>
+        <ul class="toc">
+          <li><a href="https://nextjs.org/docs/app/building-your-application/rendering/server-components" target="_blank" rel="noreferrer">서버 컴포넌트 문서</a></li>
+          <li><a href="https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns" target="_blank" rel="noreferrer">서버와 클라이언트 조합 패턴</a></li>
+        </ul>
+      </section>
+
+      <section data-transition="zoom">
+        <h1>끝</h1><p class="subtitle">3강에서는 데이터를 가져옵니다</p>
+      </section>
+
+    </section>
+
+  </div>
+</div>
+</body>
+
+</html>
